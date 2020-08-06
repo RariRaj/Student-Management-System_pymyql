@@ -14,7 +14,7 @@ class StudentMs:
         title=Label(self.root,text="Student Management System",font=("Times new roman",18,"bold"),bg="green",fg="white")
         title.pack(side=TOP,fill=X)
 
-        self.conn=pymysql.connect(host="localhost", user="rariraj", password="Raynav26$",database="sms")
+        
         
 
         #StringVar() instance
@@ -82,7 +82,7 @@ class StudentMs:
         update_btn=Button(btn_frame,command=self.update,text="Update",bg="plum1",activeforeground="red",font=("times ",16,"bold"))
         update_btn.grid(row=0,column=1,pady=10,padx=4)
 
-        delete_btn=Button(btn_frame,text="Delete",bg="plum1",activeforeground="red",font=("times ",16,"bold"))
+        delete_btn=Button(btn_frame,command=self.delete,text="Delete",bg="plum1",activeforeground="red",font=("times ",16,"bold"))
         delete_btn.grid(row=0,column=2,pady=10,padx=4)
 
         clear_btn=Button(btn_frame,command=self.clear,text="Clear",bg="plum1",activeforeground="red",font=("times ",16,"bold"))
@@ -143,6 +143,11 @@ class StudentMs:
         self.student_table.column("address",width=150)
 
         self.student_table.pack(fill=BOTH,expand=1)
+        #bind student_table
+        self.student_table.bind('<ButtonRelease-1>',self.get_cursor)
+    
+
+        self.fetch_data()
 
     #function for Add button
     def add_students(self):
@@ -154,29 +159,35 @@ class StudentMs:
         contact=self.contact.get()
         dob=self.dob.get()
         address=self.address_txt.get('1.0',END)
-        
-        
-
+       
         if self.roll.get()=="" or self.name.get()=="" or self.email.get()=="" or self.gender.get()=="" or self.contact.get()=="" or self.dob.get()=="" or self.address_txt.get('1.0',END)=="":
             messagebox.showwarning("Warning","All fields are required")
 
         else:
-            cur=self.conn.cursor()
+            conn=pymysql.connect(host="localhost", user="rariraj", password="Raynav26$",database="sms")
+            cur=conn.cursor()
             insert_query="insert into students  values(%s,%s,%s,%s,%s,%s,%s)"
 
    
             try:
                 cur.execute(insert_query,(roll,name,email,gender,contact,dob,address)) 
-                self.conn.commit()  
+                
+                conn.commit() 
+                 
+                
                 print("values inserted...")  
                 messagebox.showinfo("Information","Values added Successfully")
 
             except Exception as e:
-                self.conn.rollback()
+                conn.rollback()
                 print("error,,,",e)
             
+            self.clear()
+            self.fetch_data()
+            conn.close()
 
-            self.conn.close()   
+        
+           
 
     #function to clear Entry fields        
     def clear(self):
@@ -188,6 +199,48 @@ class StudentMs:
         self.dob.set("")
         self.address_txt.delete('1.0',END)
 
+
+    #function to display table data on Table frame(Treeview)    
+    def fetch_data(self):
+        try:
+
+            conn=pymysql.connect(host="localhost", user="rariraj", password="Raynav26$",database="sms")
+            cur =conn.cursor()
+            cur.execute("select *from students")
+            records=cur.fetchall()
+            if len(records)!=0:
+                self.student_table.delete(*self.student_table.get_children())
+                for row in records:
+                    self.student_table.insert('',END,values=row)
+
+            conn.commit()    
+            print("data showed successfully")
+        except Exception as e:
+            conn.rollback()
+            print("Error...",e)
+        
+        conn.close()
+
+    #function to get student data from Table form(Treeview) to Manage Student Form by selectiong a record from Table Form
+    
+    def get_cursor(self,event):
+        cursor_row=self.student_table.focus()
+        content=self.student_table.item(cursor_row)
+        record=content['values']
+        #print(record)
+        self.roll.set(record[0])
+        self.name.set(record[1])
+        self.email.set(record[2])
+        self.gender.set(record[3])
+        self.contact.set(record[4])
+        self.dob.set(record[5])
+        self.address_txt.delete('1.0',END)
+        self.address_txt.insert(END,record[6])
+
+
+    
+
+    #function to update data
     def update(self):
 
         
@@ -199,21 +252,55 @@ class StudentMs:
         dob=self.dob.get()
         address=self.address_txt.get('1.0',END)
 
-        cur=self.conn.cursor()
+        conn=pymysql.connect(host="localhost", user="rariraj", password="Raynav26$",database="sms")
+        cur=conn.cursor()
         update_query="update students set name=%s,email=%s,gender=%s,contact_no=%s,dob=%s,address=%s where roll_no=%s"
         val=(name,email,gender,contact,dob,address,roll)
         
 
         try:
             cur.execute(update_query,val) 
-            self.conn.commit()
+            conn.commit()
+            
             print("values updated")  
 
         except Exception as e:
-            self.conn.rollback()
+            conn.rollback()
             print("error...",e)  
-            
-        self.conn.close()
+
+        self.clear()
+        self.fetch_data()   
+        conn.close()
+
+    #function to delete records from a table
+    def delete(self):
+
+        roll=self.roll.get()
+        name=self.name.get()
+        email=self.email.get()
+        gender=self.gender.get()
+        contact=self.contact.get()
+        dob=self.dob.get()
+        address=self.address_txt.get('1.0',END)
+        conn=pymysql.connect(host="localhost", user="rariraj", password="Raynav26$",database="sms")
+        cur=conn.cursor()
+        delete_query="delete from students where roll_no=%s"
+        
+        try: 
+
+            cur.execute(delete_query,roll)
+            conn.commit()
+            print("record deleted permanently")
+
+        except Exception as e:
+            conn.rollback()
+            print("error...",e)
+
+        self.clear()
+        self.fetch_data()
+        conn.close()
+
+
 
 
 root=Tk()

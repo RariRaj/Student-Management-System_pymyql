@@ -1,7 +1,12 @@
 from tkinter import *
 from tkinter import ttk
+import pymysql
+from tkinter import messagebox
 
 class StudentMs:
+
+    
+
     def __init__(self,root):
         self.root=root
         self.root.title("Student Management System")
@@ -9,10 +14,13 @@ class StudentMs:
         title=Label(self.root,text="Student Management System",font=("Times new roman",18,"bold"),bg="green",fg="white")
         title.pack(side=TOP,fill=X)
 
+        self.conn=pymysql.connect(host="localhost", user="rariraj", password="Raynav26$",database="sms")
+        
+
         #StringVar() instance
-        self.roll_no=StringVar()
+        self.roll=StringVar()
         self.name=StringVar()
-        self.emai=StringVar()
+        self.email=StringVar()
         self.gender=StringVar()
         self.contact=StringVar()
         self.dob=StringVar()
@@ -26,31 +34,38 @@ class StudentMs:
         #Widgets in manage_frame
         manage_title=Label(manage_frame,text="Manage Students",bg="plum1",font=("times ",18,"bold"))
         manage_title.grid(row=0,column=1,columnspan=4,pady=20)
+
         roll_no_label=Label(manage_frame,text="Roll_No:",bg="plum1",fg="red",font=("times ",14,"bold"))
         roll_no_label.grid(row=1,column=0,columnspan=2,pady=10,sticky="W")
-        roll_no_txt=Entry(manage_frame,font=("times",18))
+        roll_no_txt=Entry(manage_frame,textvariable=self.roll,font=("times",18))
         roll_no_txt.grid(row=1,column=2,columnspan=2,pady=10,sticky="W")
+
         name_label=Label(manage_frame,text="Name:",bg="plum1",fg="red",font=("Times new roman",14,"bold"))
         name_label.grid(row=2,column=0,columnspan=2,pady=10,sticky=W)
-        name_txt=Entry(manage_frame,font=("times",18))
+        name_txt=Entry(manage_frame,textvariable=self.name,font=("times",18))
         name_txt.grid(row=2,column=2,columnspan=2,pady=10,sticky="W")
+
         email_label=Label(manage_frame,text="Email:",bg="plum1",fg="red",font=("times ",14,"bold"))
         email_label.grid(row=3,column=0,columnspan=2,pady=10,sticky=W)
-        email_txt=Entry(manage_frame,font=("times",18))
+        email_txt=Entry(manage_frame,textvariable=self.email,font=("times",18))
         email_txt.grid(row=3,column=2,columnspan=2,pady=10,sticky="W")
+
         gender_label=Label(manage_frame,text="Gender:",bg="plum1",fg="red",font=("times ",14,"bold"))
         gender_label.grid(row=4,column=0,columnspan=2,pady=10,sticky=W)
-        combo_gender=ttk.Combobox(manage_frame,font=("times",18),state='readonly')
+        combo_gender=ttk.Combobox(manage_frame,textvariable=self.gender,font=("times",18),state='readonly')
         combo_gender['values']=("Male","Female","Other")
         combo_gender.grid(row=4,column=2,columnspan=2,pady=10,sticky="W")
+
         contact_no_label=Label(manage_frame,text="Contact No:",bg="plum1",fg="red",font=("times ",14,"bold"))
         contact_no_label.grid(row=5,column=0,columnspan=2,pady=10,sticky=W)
-        contact_no_txt=Entry(manage_frame,font=("times",18))
+        contact_no_txt=Entry(manage_frame,textvariable=self.contact,font=("times",18))
         contact_no_txt.grid(row=5,column=2,columnspan=2,pady=10,sticky="W")
+
         dob_label=Label(manage_frame,text="D.O.B:",bg="plum1",fg="red",font=("times ",14,"bold"))
         dob_label.grid(row=6,column=0,columnspan=2,pady=10,sticky=W)
-        dob_txt=Entry(manage_frame,font=("times",18))
+        dob_txt=Entry(manage_frame,textvariable=self.dob,font=("times",18))
         dob_txt.grid(row=6,column=2,columnspan=2,pady=10,sticky="W")
+
         address_label=Label(manage_frame,text="Address:",bg="plum1",fg="red",font=("times ",14,"bold"))
         address_label.grid(row=7,column=0,columnspan=2,pady=10,sticky=W)
         self.address_txt=Text(manage_frame,width=24,height=4,font=("",14))
@@ -61,13 +76,16 @@ class StudentMs:
         btn_frame.place(x=10,y=500,width=380,height=60)
 
         #Buttons
-        add_btn=Button(btn_frame,text="Add",bg="plum1",activeforeground="red",font=("times ",16,"bold"))
+        add_btn=Button(btn_frame,command=self.add_students,text="Add",bg="plum1",activeforeground="red",font=("times ",16,"bold"))
         add_btn.grid(row=0,column=0,pady=10,padx=4)
-        update_btn=Button(btn_frame,text="Update",bg="plum1",activeforeground="red",font=("times ",16,"bold"))
+
+        update_btn=Button(btn_frame,command=self.update,text="Update",bg="plum1",activeforeground="red",font=("times ",16,"bold"))
         update_btn.grid(row=0,column=1,pady=10,padx=4)
+
         delete_btn=Button(btn_frame,text="Delete",bg="plum1",activeforeground="red",font=("times ",16,"bold"))
         delete_btn.grid(row=0,column=2,pady=10,padx=4)
-        clear_btn=Button(btn_frame,text="Clear",bg="plum1",activeforeground="red",font=("times ",16,"bold"))
+
+        clear_btn=Button(btn_frame,command=self.clear,text="Clear",bg="plum1",activeforeground="red",font=("times ",16,"bold"))
         clear_btn.grid(row=0,column=3,pady=10,padx=4)
 
 
@@ -79,13 +97,17 @@ class StudentMs:
         #Widgets in detail_frame
         search_label=Label(detail_frame,text="Search By",bg="powder blue",activeforeground="red",font=("times ",18,"bold"))
         search_label.grid(row=0,column=0,pady=10,padx=2)
+
         combo_serach=ttk.Combobox(detail_frame,font=("times ",18,"bold"),state='readonly')
         combo_serach['values']=("roll_no","name","email","contact_no")
         combo_serach.grid(row=0,column=1,pady=10,padx=2)
+
         search_txt=Entry(detail_frame,font=("times ",18,"bold"))
         search_txt.grid(row=0,column=2,pady=10,padx=2)
+
         search_btn=Button(detail_frame,text="Search",bg="powder blue",activeforeground="red",font=("times ",14,"bold"))
         search_btn.grid(row=0,column=3,pady=10,padx=2)
+
         show_all_btn=Button(detail_frame,text="Show All",bg="powder blue",activeforeground="red",font=("times ",14,"bold"))
         show_all_btn.grid(row=0,column=4,pady=10,padx=2)
 
@@ -122,6 +144,76 @@ class StudentMs:
 
         self.student_table.pack(fill=BOTH,expand=1)
 
+    #function for Add button
+    def add_students(self):
+
+        roll=self.roll.get()
+        name=self.name.get()
+        email=self.email.get()
+        gender=self.gender.get()
+        contact=self.contact.get()
+        dob=self.dob.get()
+        address=self.address_txt.get('1.0',END)
+        
+        
+
+        if self.roll.get()=="" or self.name.get()=="" or self.email.get()=="" or self.gender.get()=="" or self.contact.get()=="" or self.dob.get()=="" or self.address_txt.get('1.0',END)=="":
+            messagebox.showwarning("Warning","All fields are required")
+
+        else:
+            cur=self.conn.cursor()
+            insert_query="insert into students  values(%s,%s,%s,%s,%s,%s,%s)"
+
+   
+            try:
+                cur.execute(insert_query,(roll,name,email,gender,contact,dob,address)) 
+                self.conn.commit()  
+                print("values inserted...")  
+                messagebox.showinfo("Information","Values added Successfully")
+
+            except Exception as e:
+                self.conn.rollback()
+                print("error,,,",e)
+            
+
+            self.conn.close()   
+
+    #function to clear Entry fields        
+    def clear(self):
+        self.roll.set("")
+        self.name.set("")
+        self.email.set("")
+        self.gender.set("")
+        self.contact.set("")
+        self.dob.set("")
+        self.address_txt.delete('1.0',END)
+
+    def update(self):
+
+        
+        roll=self.roll.get()
+        name=self.name.get()
+        email=self.email.get()
+        gender=self.gender.get()
+        contact=self.contact.get()
+        dob=self.dob.get()
+        address=self.address_txt.get('1.0',END)
+
+        cur=self.conn.cursor()
+        update_query="update students set name=%s,email=%s,gender=%s,contact_no=%s,dob=%s,address=%s where roll_no=%s"
+        val=(name,email,gender,contact,dob,address,roll)
+        
+
+        try:
+            cur.execute(update_query,val) 
+            self.conn.commit()
+            print("values updated")  
+
+        except Exception as e:
+            self.conn.rollback()
+            print("error...",e)  
+            
+        self.conn.close()
 
 
 root=Tk()

@@ -11,7 +11,7 @@ class StudentMs:
         self.root=root
         self.root.title("Student Management System")
         self.root.geometry("1350x600+0+0")
-        title=Label(self.root,text="Student Management System",font=("Times new roman",18,"bold"),bg="green",fg="white")
+        title=Label(self.root,text="Student Management System",font=("Times new roman",24,"bold"),bg="green",fg="white")
         title.pack(side=TOP,fill=X)
 
         
@@ -24,6 +24,9 @@ class StudentMs:
         self.gender=StringVar()
         self.contact=StringVar()
         self.dob=StringVar()
+
+        self.search_by=StringVar()
+        self.search_txt=StringVar()
         
 
 
@@ -98,17 +101,17 @@ class StudentMs:
         search_label=Label(detail_frame,text="Search By",bg="powder blue",activeforeground="red",font=("times ",18,"bold"))
         search_label.grid(row=0,column=0,pady=10,padx=2)
 
-        combo_serach=ttk.Combobox(detail_frame,font=("times ",18,"bold"),state='readonly')
+        combo_serach=ttk.Combobox(detail_frame,textvariable=self.search_by,font=("times ",18,"bold"),state='readonly')
         combo_serach['values']=("roll_no","name","email","contact_no")
         combo_serach.grid(row=0,column=1,pady=10,padx=2)
 
-        search_txt=Entry(detail_frame,font=("times ",18,"bold"))
+        search_txt=Entry(detail_frame,textvariable=self.search_txt,font=("times ",18,"bold"))
         search_txt.grid(row=0,column=2,pady=10,padx=2)
 
-        search_btn=Button(detail_frame,text="Search",bg="powder blue",activeforeground="red",font=("times ",14,"bold"))
+        search_btn=Button(detail_frame,command=self.search_data,text="Search",bg="powder blue",activeforeground="red",font=("times ",14,"bold"))
         search_btn.grid(row=0,column=3,pady=10,padx=2)
 
-        show_all_btn=Button(detail_frame,text="Show All",bg="powder blue",activeforeground="red",font=("times ",14,"bold"))
+        show_all_btn=Button(detail_frame,command=self.fetch_data,text="Show All",bg="powder blue",activeforeground="red",font=("times ",14,"bold"))
         show_all_btn.grid(row=0,column=4,pady=10,padx=2)
 
         #Table Frame
@@ -262,7 +265,8 @@ class StudentMs:
             cur.execute(update_query,val) 
             conn.commit()
             
-            print("values updated")  
+            print("values updated")
+            messagebox.showinfo("Updation","Record of'{}'updated successfully".format(name))  
 
         except Exception as e:
             conn.rollback()
@@ -277,11 +281,6 @@ class StudentMs:
 
         roll=self.roll.get()
         name=self.name.get()
-        email=self.email.get()
-        gender=self.gender.get()
-        contact=self.contact.get()
-        dob=self.dob.get()
-        address=self.address_txt.get('1.0',END)
         conn=pymysql.connect(host="localhost", user="rariraj", password="Raynav26$",database="sms")
         cur=conn.cursor()
         delete_query="delete from students where roll_no=%s"
@@ -291,6 +290,7 @@ class StudentMs:
             cur.execute(delete_query,roll)
             conn.commit()
             print("record deleted permanently")
+            messagebox.showinfo("Deletion","Record of '{}'deleted successfully".format(name))
 
         except Exception as e:
             conn.rollback()
@@ -299,6 +299,44 @@ class StudentMs:
         self.clear()
         self.fetch_data()
         conn.close()
+
+    #function used to search a student record
+    def search_data(self):
+
+        search_by_var=self.search_by.get()
+        search_txt_var=self.search_txt.get()
+        conn=pymysql.connect(host="localhost", user="rariraj", password="Raynav26$",database="sms")
+        cur=conn.cursor()
+
+        #in code below,make sure that you leave a space after WHERE keyword and a space before LIKE keyword
+        search_query="select * from students where " +str(search_by_var)+ " LIKE'%"+str(search_txt_var)+"%'"
+       
+ 
+
+        
+        try:                                        
+
+            cur.execute(search_query)
+            record=cur.fetchall()
+            if len(record)!=0:
+                self.student_table.delete(*self.student_table.get_children())
+                for data in record:
+                    self.student_table.insert('',END,values=data)
+
+
+            conn.commit()
+            print("search worked successfully")
+
+        except Exception as e:
+
+            conn.rollback()
+            print("error...",e)
+
+        conn.close()
+
+
+
+
 
 
 
